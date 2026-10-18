@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>扬声器声道检测</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui, -apple-system, sans-serif}
+body{
+    min-height:100vh;
+    background:linear-gradient(135deg,#222831,#393E46);
+    color:#ffffff;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:28px;
+}
+.title{
+    font-size:26px;
+    font-weight:500;
+    letter-spacing:1px;
+}
+.btns{
+    display:flex;
+    gap:16px;
+}
+button{
+    width:140px;
+    padding:16px 0;
+    border:none;
+    border-radius:12px;
+    font-size:17px;
+    cursor:pointer;
+    transition:all 0.25s ease;
+}
+.btn-left{
+    background:#00ADB5;
+    color:#fff;
+}
+.btn-right{
+    background:#7209B7;
+    color:#fff;
+}
+.btn-stop{
+    background:#F72585;
+    color:#fff;
+}
+button:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 16px rgba(0,0,0,0.35);
+}
+button:active{
+    transform:translateY(0px);
+}
+.tip{
+    color:#cccccc;
+    font-size:14px;
+}
+</style>
+</head>
+<body>
+<div class="title">🔊 声道检测工具</div>
+<div class="btns">
+    <button class="btn-left" id="leftBtn">左声道</button>
+    <button class="btn-right" id="rightBtn">右声道</button>
+</div>
+<button class="btn-stop" id="stopBtn">停止播放</button>
+<div class="tip">440Hz正弦测试音 | 仅本地浏览器打开使用</div>
+
+<script>
+let audioCtx;
+let oscNode = null;
+
+function getAudioContext(){
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+}
+function stopAudio(){
+    if(oscNode){
+        try{oscNode.stop()}catch(e){}
+        oscNode = null;
+    }
+}
+
+//左声道
+document.getElementById("leftBtn").onclick = function(){
+    stopAudio();
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const merger = ctx.createChannelMerger(2);
+    osc.type = 'sine';
+    osc.frequency.value = 440;
+    gain.gain.value = 0.3;
+    osc.connect(gain);
+    gain.connect(merger, 0, 0);
+    merger.connect(ctx.destination);
+    osc.start();
+    oscNode = osc;
+}
+
+//右声道
+document.getElementById("rightBtn").onclick = function(){
+    stopAudio();
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const merger = ctx.createChannelMerger(2);
+    osc.type = 'sine';
+    osc.frequency.value = 440;
+    gain.gain.value = 0.3;
+    osc.connect(gain);
+    gain.connect(merger, 0, 1);
+    merger.connect(ctx.destination);
+    osc.start();
+    oscNode = osc;
+}
+document.getElementById("stopBtn").onclick = stopAudio;
+</script>
+</body>
+</html>
